@@ -1,47 +1,49 @@
 import os
 
-def get_files_info(working_directory, directory=None):
+def get_files_info(working_directory, directory="."):
     
-    absolute_working_directory = get_path(working_directory)
-    combined_target_directory = os.path.join(absolute_working_directory, directory)
-    absolute_target_directory = os.path.abspath(combined_target_directory)
+    absolute_directory = os.path.abspath(os.path.join(working_directory, directory))
 
-    
-    if os.path.isdir(absolute_target_directory):
-    
-        if absolute_target_directory.startswith(absolute_working_directory):
-            directory_contents = ""
+    # CHECK IF THE DIRECTORY ARGUMENT IS ACTUALLY A DIRECTORY
+    if os.path.isdir(absolute_directory):
 
-            for content in list_contents(absolute_target_directory):
-                content_path = os.path.join(absolute_target_directory, content)
-
-                file_name = content
-                directory_contents = directory_contents + "- " + file_name + ": "
-                
-                file_size = get_size(content_path)
-                directory_contents = directory_contents + file_size
-                
-                is_directory = validate_directory(content_path)
-                directory_contents = directory_contents + is_directory + "\n"
-            
-            return directory_contents
-           
-        else:
+        # CHECK IF THE DIRECTORY ARGUMENT IS (NOT) INSIDE THE WORKING DIRECTORY
+        target_dir_path = os.path.abspath(working_directory)
+        if not absolute_directory.startswith(target_dir_path):
             return f'Error: Cannot list "{directory}" as it is outside the permitted working directory'
+
+        # IF IT IS, EXECUTE:
+        else:
+            dir_contents = os.listdir(absolute_directory) 
+            dir_analysis = ""
+            item_number = 0
+
+            if directory == ".":
+                name = "current_directory"
+            else:
+                name = directory
+
+
+            
+            # CYCLE THROUGH THE ITEMS IN THE DIRECTORY
+            for item in dir_contents:
+                item_number +=1
+                item_path = os.path.join(absolute_directory, item)
+            
+                if len(dir_contents) == item_number:
+                    dir_analysis = dir_analysis + f"- {item}: file_size={os.path.getsize(item_path)} bytes, is_dir={os.path.isdir(item_path)}"
+                else:
+                    dir_analysis = dir_analysis + f"- {item}: file_size={os.path.getsize(item_path)} bytes, is_dir={os.path.isdir(item_path)}" + "\n"
+
+            return f"Result for '{name}' directory:" + "\n" + dir_analysis + "\n"
+        
+
+    # IF THE DIRECTORY ARGUMENT IS NOT A DIRECTORY TYPE.        
     else:
         return f'Error: "{directory}" is not a directory'
 
+    
 
+    
 
-def get_path(dir):
-    return os.path.abspath(dir)
-
-def list_contents(dir_path):
-    return os.listdir(dir_path)
-
-def get_size(file_path):
-    return f"file_size={os.path.getsize(file_path)}, "
-
-def validate_directory(path):
-    return f"is_dir={os.path.isdir(path)}"
 

@@ -1,57 +1,62 @@
 import os
+from config import character_limit
 
 def get_file_content(working_directory, file_path):
+    print(":::NEW CALL:::")
 
-    absolute_working_directory = get_path(working_directory)
-    print(f"absolute_working_directory = {absolute_working_directory}")
-    print(f"file path = {file_path}")
     
-    combined_target_directory = os.path.join(absolute_working_directory, file_path)
-    print(f"combined_working_directory = {combined_target_directory}")
-    absolute_target_directory = os.path.abspath(combined_target_directory)
-    print(f"absolute_target_directory = {absolute_target_directory}")
+    # CONVERT THE FILE PATH AND DIRECTORY TO FULL PATHS AND JOIN THEM.
+    full_file_path = os.path.abspath(os.path.join(working_directory, file_path))
+    abs_working_directory = os.path.abspath(working_directory)
+    print(f"DEBUG ::- full file path = {full_file_path}")
+    print(f"DEBUG ::- abs_working_directory = {abs_working_directory}")
+    
 
-    # if path is a file:
-    if os.path.isfile(absolute_target_directory):
-        print(f"the path is a 'file' file type.")
-        
-        # if path is inside the working directory:
-        if absolute_target_directory.startswith(absolute_working_directory):
+ 
+    
+    # If the file path is outside of the working directory:
+    if not full_file_path.startswith(abs_working_directory):
+        print(f'DEBUG ::- Error: Cannot read "{file_path}" as it is outside the permitted working directory')
+        print("\n")
+        return f'Error: Cannot read "{file_path}" as it is outside the permitted working directory'
             
-            max_chars = 10000
-            with open(file_path,"r") as f:
-                file_content_string = f.read(max_chars)
-                resulting_string = file_content_string
-                if len(file_content_string) > 10000:
-                    resulting_string = resulting_string + f'[...File "{file_path}" truncated at "{max_chars}" characters].'
-                    
+    # If the file path is inside the working directory:
+    else:
+        print(f"DEBUG ::- file: '{file_path}' is inside the working directory:'{working_directory}'")
+        print("\n")
 
-        
+
+        # CHECK IF THE FILEPATH IS NOT A FILE TYPE:
+        if not os.path.isfile(full_file_path):
+            print(f'DEBUG ::- Error: File not found or is not a regular file: "{full_file_path}"')
+            print("\n")
+            return f'Error: File not found or is not a regular file: "{full_file_path}"'
         
         else:
-            return f'Error: Cannot read "{file_path}" as it is outside the permitted working directory'
-    else:
-        return f'Error: File not found or is not a regular file: "{file_path}"'
+            print(f"DEBUG ::- file:{file_path} is a file type, and is within the working directory {working_directory}")
 
-  
-    
+            with open(full_file_path, "r") as f:
+                file_content_string = f.read(character_limit +1)
+                character_length = len(file_content_string)
+                if character_length > character_limit:
+                    return file_content_string[:character_limit] + f'[...File "{file_path}" truncated at "{character_limit}" characters].'
+                else: 
+                    return f'{file_content_string}'
+            
+    print("\n")
+    print("\n")
 
 
 
 
-def get_path(dir):
-    return os.path.abspath(dir)
 
-def list_contents(dir_path):
-    return os.listdir(dir_path)
 
-def get_size(file_path):
-    return f"file_size={os.path.getsize(file_path)}, "
 
-def validate_directory(path):
-    return f"is_dir={os.path.isdir(path)}"
 
-if __name__ == "__main__":
-    # Try running your function with some test inputs
-    print(get_file_content("calculator", "main.py"))
-    print(get_file_content("calculator", "does_not_exist.txt"))
+
+
+
+
+
+
+
