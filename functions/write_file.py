@@ -1,4 +1,6 @@
 import os
+from google.genai import types
+
 
 def write_file(working_directory, file_path, content):
     print(f"\nDEBUG :: - NEW FUNCTION CALL ::")
@@ -25,3 +27,22 @@ def write_file(working_directory, file_path, content):
             f.write(content)
             
         return f'Successfully wrote to "{file_path}" ({len(content)} characters written)'
+
+
+schema_write_file = types.FunctionDeclaration(
+    name="write_file",
+    description="Write or overwrite files",
+    parameters=types.Schema(
+        type=types.Type.OBJECT,
+        properties={
+            "file_path": types.Schema(
+                type=types.Type.STRING,
+                description="The file path of the desired write/overwrite location",
+            ),
+            "content": types.Schema(
+                type=types.Type.STRING,
+                description="The newly added content written to the file"
+            )
+        },
+    ),
+)
