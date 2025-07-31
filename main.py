@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 from config import system_prompt
-from functions.call_function import available_functions
+from functions.call_function import available_functions, call_function
 import sys
 
 def main ():
@@ -51,7 +51,25 @@ def main ():
         sys.exit(0)
 
     for function_call_part in response.function_calls:
-        print(f"Calling function: {function_call_part.name}({function_call_part.args})")
+        # call the functuion and get the result
+        function_result = call_function(function_call_part, verbose="--verbose" in sys.argv)
+
+        if not function_result.parts or not function_result.parts[0].function_response or not function_result.parts[0].function_response.response:
+            # Did the function have no parts at all? If yes, thats bad
+            # OR
+            # Did the first part exist, but it doesn't contain the function's response. Still bad.
+            # OR
+            # The function ran, but it didn’t return any result inside the expected structure. Still bad.
+            raise Exception ("Fatal error, function did not return a valid response")
+        
+        response_content = function_result.parts[0].function_response.response.get("result")
+        if "--verbose" in sys.argv:
+            print(f"-> {response_content}")
+        else:
+            print(response_content)
+        
+
+
 
 
 

@@ -1,8 +1,8 @@
 from google.genai import types
-from functions.get_files_info import schema_get_files_info
-from functions.get_file_content import schema_get_file_content
-from functions.run_python_file import schema_run_python_file
-from functions.write_file import schema_write_file
+from functions.get_files_info import schema_get_files_info, get_files_info
+from functions.get_file_content import schema_get_file_content, get_file_content
+from functions.run_python_file import schema_run_python_file, run_python_file
+from functions.write_file import schema_write_file, write_file
 
 
 
@@ -14,3 +14,47 @@ available_functions = types.Tool(
         schema_write_file
     ]
 )
+
+def call_function(function_call_part, verbose=False):
+    if verbose:
+        print(f"Calling function: {function_call_part.name}({function_call_part.args})")
+    print(f" - Calling function: {function_call_part.name}")
+
+    # These are the available functions that we are allowing the AI to call.
+    function_map = {
+        "get_files_info": get_files_info,
+        "get_file_content" : get_file_content,
+        "run_python_file" : run_python_file,
+        "write_file" : write_file
+    }
+
+    # Assigning the function_name variable to the "name" of the function the AI gives us.
+    function_name = function_call_part.name
+
+    # Assigning the arguments the AI gives us [eg. {directory : calculator} ] to a variable named function_args
+    function_args = function_call_part.args
+
+    # Assigning the working directory to calculator ALWAYS
+    function_args["working_directory"] = "./calculator"
+
+    if function_name not in function_map:
+        return types.Content(
+            role="tool",
+            parts=[
+                types.Part.from_function_response(
+                    name=function_name,
+                    response={"error": f"Unknown function: {function_name}"},
+                )
+            ],
+        )
+    else:
+        function_result = function_map[function_name](**function_args)
+        return types.Content(
+            role="tool",
+            parts=[
+                types.Part.from_function_response(
+                    name=function_name,
+                    response={"result": function_result},
+                )
+            ],
+        )
